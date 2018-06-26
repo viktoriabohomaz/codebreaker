@@ -3,7 +3,6 @@ require 'yaml'
 
 module Codebreaker
   class Game
-    #include GameMessagesInterface
     DEFAULT_TURNS_COUNT = 10
     DEFAULT_HINTS_COUNT = 1
     VALID_USER_ANSWER = /^[1-6]{4}$/
