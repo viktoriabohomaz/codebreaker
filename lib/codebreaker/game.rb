@@ -1,6 +1,5 @@
-require_relative '../codebreaker/modules/game_messages_interface'
+require_relative 'game_messages_interface.rb'
 require 'yaml'
-#require 'pry'
 
 module Codebreaker
   class Game
@@ -17,7 +16,7 @@ module Codebreaker
       @hint = DEFAULT_HINTS_COUNT
       @turns = DEFAULT_TURNS_COUNT
       @result = []
-      @message = YAML.load(File.open(File.join(File.dirname(__FILE__), "../data/info.yml")))
+      @game_message_interface = GameMessagesInterface.new
     end
 
     def input
@@ -28,16 +27,12 @@ module Codebreaker
       @secret_code = (1..4).map {rand(1..6)}
     end
 
-    def puts_message(text)
-      puts @message[:puts_message][text].to_s
-    end
-
     def generate_answer
       @answer_user = input
       if @answer_user =~ VALID_USER_ANSWER
         @answer_user = @answer_user.split('').map!(&:to_i)
       else
-        puts_message(:invalid_code)
+        @game_message_interface.puts_message(:invalid_code)
         generate_answer
       end
     end
@@ -60,8 +55,8 @@ module Codebreaker
     end
 
     def check_win
-      puts_message(:win) if win?
-      puts_message(:lose) if lose?
+      @game_message_interface.puts_message(:win) if win?
+      @game_message_interface.puts_message(:lose) if lose?
     end
 
     def reduction_turns
@@ -78,7 +73,7 @@ module Codebreaker
       generate_secret_code
       1.upto(DEFAULT_TURNS_COUNT) do |_step|
         reduction_turns
-        puts_message(:rules)
+        @game_message_interface.puts_message(:rules)
         generate_answer
         puts_result
         chek_hint
@@ -90,29 +85,38 @@ module Codebreaker
 
     def chek_hint
       return if @hint.zero?
-      puts_message(:hint)
+      @game_message_interface.puts_message(:hint)
       p puts_hint if agree?
     end
 
     def play_again
       initialize
-      puts_message(:play_again)
+      @game_message_interface.puts_message(:play_again)
       if agree?
         play
       else
-        puts_message(:game_over)
+        @game_message_interface.puts_message(:game_over)
       end
     end
 
-    def check_result
+    def add_pluses
       @pluses = []
-      @minuses = []
       4.times do |i|
-        if @secret_code.include?(@answer_user[i])
-          @pluses.push('+') if @secret_code[i] == @answer_user[i]
-          @minuses.push('-') if @secret_code[i] != @answer_user[i]
-        end
+        @pluses.push('+') if @secret_code[i] == @answer_user[i]
       end
+    end
+
+    def add_minuses
+      @minuses = []
+      common = @secret_code & @answer_user
+      minuses_count = common.count - @pluses.count
+      minuses_count.times { @minuses.push '-'}
+    end
+
+    def check_result
+      add_pluses
+      add_minuses
+      @result.push(@pluses, @minuses).flatten!
     end
   end
 end

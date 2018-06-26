@@ -1,8 +1,6 @@
-=begin
 require 'yaml'
-require 'pry'
 
-module GameMessagesInterface
+class GameMessagesInterface
   attr_reader :message
 
   def initialize
@@ -13,4 +11,3 @@ module GameMessagesInterface
     puts @message[:puts_message][text].to_s
   end
 end
-=end
